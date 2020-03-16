@@ -2,7 +2,7 @@
  "uuid": "bumblebee-status@trolleyyy",
  "name": "Bumblebee Status",
  "description": "Track bumblebee status",
- "icon": "bumblebee-status-inactive",
+ "icon": "bumblebee-status-icon",
  "role": "panellauncher",
  "max-instances": 1
 }

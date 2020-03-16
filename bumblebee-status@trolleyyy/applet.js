@@ -6,6 +6,7 @@ const Main = imports.ui.main;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const PopupMenu = imports.ui.popupMenu;
+const Config = imports.misc.config;
 
 function BumblebeeStatusApplet(metadata, orientation, panel_height, instance_id) {
     this._init(metadata, orientation, panel_height, instance_id);
@@ -22,6 +23,12 @@ BumblebeeStatusApplet.prototype = {
         try {
             this.metadata = metadata;
             Main.systrayManager.registerRole("bumblebee-status", metadata.uuid);
+
+            let cinnamonVersion = Config.PACKAGE_VERSION.split('.');
+            global.log("Cinnamon version is " + cinnamonVersion);
+            let majorVersion = parseInt(cinnamonVersion[0]);
+            let midVersion = parseInt(cinnamonVersion[1]);
+            this.use_pkexec = majorVersion > 3 || (majorVersion == 3 && midVersion > 5);
 
             this.menuManager = new PopupMenu.PopupMenuManager(this);
             this.menu = new Applet.AppletPopupMenu(this, orientation);
@@ -41,25 +48,37 @@ BumblebeeStatusApplet.prototype = {
         }
     },
 
-    _handleMenuItems: function() {
+    _handleMenuItems: function () {
         if (this._bbRunning) {
             if (this._startDaemonMenuItem) {
                 this._startDaemonMenuItem.destroy();
                 this._startDaemonMenuItem = null;
             }
 
-            this._stopDaemonMenuItem = this.menu.addAction(_("Stop Bumblebee daemon"), Lang.bind(this, function() {
-                Util.spawnCommandLine("gksu service bumblebeed stop");
-            }));
+            if (!this._stopDaemonMenuItem) {
+                this._stopDaemonMenuItem = this.menu.addAction(_("Stop Bumblebee daemon"), Lang.bind(this, function () {
+                    if (this.use_pkexec) {
+                        Util.spawnCommandLine("sh -c 'pkexec systemctl stop bumblebeed.service'");
+                    } else {
+                        Util.spawnCommandLine("gksu 'systemctl stop bumblebeed.service'");
+                    }
+                }));
+            }
         } else {
             if (this._stopDaemonMenuItem) {
                 this._stopDaemonMenuItem.destroy();
                 this._stopDaemonMenuItem = null;
             }
 
-            this._startDaemonMenuItem = this.menu.addAction(_("Start Bumblebee daemon"), Lang.bind(this, function() {
-                Util.spawnCommandLine("gksu service bumblebeed start");
-            }));
+            if (!this._startDaemonMenuItem) {
+                this._startDaemonMenuItem = this.menu.addAction(_("Start Bumblebee daemon"), Lang.bind(this, function () {
+                    if (this.use_pkexec) {
+                        Util.spawnCommandLine("sh -c 'pkexec systemctl start bumblebeed.service'");
+                    } else {
+                        Util.spawnCommandLine("gksu 'systemctl start bumblebeed.service'");
+                    }
+                }));
+            }
         }
     },
 
