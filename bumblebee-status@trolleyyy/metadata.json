@@ -1,0 +1,8 @@
+{
+ "uuid": "bumblebee-status@trolleyyy",
+ "name": "Bumblebee Status",
+ "description": "Track bumblebee status",
+ "icon": "bumblebee-status-inactive",
+ "role": "panellauncher",
+ "max-instances": 1
+}
