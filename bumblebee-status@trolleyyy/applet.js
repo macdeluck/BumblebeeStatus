@@ -22,10 +22,44 @@ BumblebeeStatusApplet.prototype = {
         try {
             this.metadata = metadata;
             Main.systrayManager.registerRole("bumblebee-status", metadata.uuid);
+
+            this.menuManager = new PopupMenu.PopupMenuManager(this);
+            this.menu = new Applet.AppletPopupMenu(this, orientation);
+            this.menuManager.addMenu(this.menu);
+            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            this._bbRunning = null;
+
             this._testStatus();
             this._restartPeriodicUpdateTimer(DEFAULT_BUMBLEBEED_STATUS_TIMEOUT_SECONDS);
+
+            if (this._isBumblebeeInstalled()) {
+                this._bbRunning = false;
+                this._handleMenuItems();
+            }
         } catch (e) {
             global.logError(e);
+        }
+    },
+
+    _handleMenuItems: function() {
+        if (this._bbRunning) {
+            if (this._startDaemonMenuItem) {
+                this._startDaemonMenuItem.destroy();
+                this._startDaemonMenuItem = null;
+            }
+
+            this._stopDaemonMenuItem = this.menu.addAction(_("Stop Bumblebee daemon"), Lang.bind(this, function() {
+                Util.spawnCommandLine("gksu service bumblebeed stop");
+            }));
+        } else {
+            if (this._stopDaemonMenuItem) {
+                this._stopDaemonMenuItem.destroy();
+                this._stopDaemonMenuItem = null;
+            }
+
+            this._startDaemonMenuItem = this.menu.addAction(_("Start Bumblebee daemon"), Lang.bind(this, function() {
+                Util.spawnCommandLine("gksu service bumblebeed start");
+            }));
         }
     },
 
@@ -47,6 +81,11 @@ BumblebeeStatusApplet.prototype = {
         let iconName = "bumblebee-status-unavailable";
         let statusText = _("The bumblebee is not installed");
         if (this._isBumblebeeInstalled()) {
+            let isRunning = this._isBumblebeeRunning();
+            if (this._bbRunning != isRunning) {
+                this._bbRunning = isRunning;
+                this._handleMenuItems();
+            }
             if (this._isBumblebeeRunning()) {
                 let bbstate = this._getBumblebeeSwitchStatus();
                 if (!bbstate) {
@@ -104,7 +143,6 @@ BumblebeeStatusApplet.prototype = {
         let [out, size] = stdout.read_line(null);
 
         if (out == null) {
-            global.logError("bumblebee-status applet: Could not execute " + command);
             return null;
         } else {
             return out.toString();
@@ -112,7 +150,7 @@ BumblebeeStatusApplet.prototype = {
     },
 
     on_applet_clicked: function (event) {
-        // this.menu.toggle();
+        this.menu.toggle();
     },
 
     on_applet_removed_from_panel: function () {
