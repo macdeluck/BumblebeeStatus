@@ -73,14 +73,15 @@ BumblebeeStatusApplet.prototype = {
 
     _isBumblebeeInstalled: function () {
         if (!this._bbInstalled) {
-            let out = this._doCommand(["bash", "-c", "which optirun > /dev/null && which bumblebeed > /dev/null && echo OK"]);
-            this._bbInstalled = out == "OK";
+            let out1 = this._doCommand(["bumblebeed", "--version"]);
+            let out2 = this._doCommand(["optirun", "--version"]);
+            this._bbInstalled = !!out1 && !!out2;
         }
         return this._bbInstalled;
     },
 
     _isBumblebeeRunning: function () {
-        let out = this._doCommand(["bash", "-c", "ps axco command | grep bumblebeed"]);
+        let out = this._doCommand(["pgrep", "bumblebeed"]);
         return out && out.length > 0;
     },
 
