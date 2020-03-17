@@ -105,7 +105,7 @@ BumblebeeStatusApplet.prototype = {
                 this._bbRunning = isRunning;
                 this._handleMenuItems();
             }
-            if (this._isBumblebeeRunning()) {
+            if (isRunning) {
                 let bbstate = this._getBumblebeeSwitchStatus();
                 if (!bbstate) {
                     global.logError("bumblebee-status applet: cat /proc/acpi/bbswitch returned unexpected result");
