@@ -126,10 +126,10 @@ function BumblebeeStatusApplet(metadata, orientation, panel_height, instance_id)
 }
 
 BumblebeeStatusApplet.prototype = {
-    __proto__: Applet.TextIconApplet.prototype,
+    __proto__: Applet.IconApplet.prototype,
 
     _init: function (metadata, orientation, panel_height, instance_id) {
-        Applet.TextIconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
+        Applet.IconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
 
         try {
             this.metadata = metadata;
